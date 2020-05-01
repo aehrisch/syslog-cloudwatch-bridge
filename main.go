@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -35,6 +36,10 @@ func init() {
 }
 
 func main() {
+
+	useJson := flag.Bool("json", false, "send events in JSON format")
+	flag.Parse()
+
 	if logGroupName == "" {
 		log.Fatal("LOG_GROUP_NAME must be specified")
 	}
@@ -70,7 +75,7 @@ func main() {
 					if len(loglist) <= 0 {
 						continue
 					}
-					sendToCloudWatch(loglist)
+					sendToCloudWatch(*useJson, loglist)
 					loglist = make([]format.LogParts, 0)
 				case logParts := <- channel:
 					loglist = append(loglist, logParts)
@@ -81,7 +86,7 @@ func main() {
 	server.Wait()
 }
 
-func sendToCloudWatch(buffer []format.LogParts) {
+func sendToCloudWatch(useJson bool, buffer []format.LogParts) {
 	// service is defined at run time to avoid session expiry in long running processes
 	var svc = cloudwatchlogs.New(session.New())
 	// set the AWS SDK to use our bundled certs for the minimal container (certs from CoreOS linux)
@@ -93,10 +98,16 @@ func sendToCloudWatch(buffer []format.LogParts) {
 	}
 
 	for _, logPart := range buffer {
-        json_bytes,_ := json.Marshal(logPart)
-        json_str := string(json_bytes)
+
+		var event_str = ""
+		if useJson {
+			json_bytes,_ := json.Marshal(logPart)
+			event_str = string(json_bytes)
+		} else {
+			event_str = logPart["content"].(string)
+		}
 		params.LogEvents = append(params.LogEvents, &cloudwatchlogs.InputLogEvent{
-			Message:   aws.String(json_str),
+			Message:   aws.String(event_str),
 			Timestamp: aws.Int64(makeMilliTimestamp(logPart["timestamp"].(time.Time))),
 		})
 	}
