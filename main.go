@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 	"time"
-	"encoding/json"
+
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -97,6 +97,8 @@ func sendToCloudWatch(useJson bool, buffer []format.LogParts) {
 		LogStreamName: aws.String(streamName.String()),
 	}
 
+	sort.Slice(buffer, func(i, j int) bool { return buffer[i]["timestamp"].(time.Time).Before(buffer[j]["timestamp"].(time.Time)) })
+
 	for _, logPart := range buffer {
 
 		var event_str = ""
@@ -121,6 +123,7 @@ func sendToCloudWatch(useJson bool, buffer []format.LogParts) {
 	if err != nil {
 		log.Println(err)
 	}
+	log.Printf("Pushed %v entries to CloudWatch", len(buffer))
 
 	sequenceToken = *resp.NextSequenceToken
 }
