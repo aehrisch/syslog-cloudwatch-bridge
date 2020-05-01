@@ -13,10 +13,6 @@ jobs:
     - uses: actions/setup-go@v2
       with:
         go-version: '^1.14.2'
-
-    - name: get dependencies
-    - run: go get -d ./...
-
-    - name: build
-    - run: make
-
+    - run: |
+        go get -d ./...
+        make
