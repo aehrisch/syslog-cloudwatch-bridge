@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"encoding/json"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -92,8 +93,10 @@ func sendToCloudWatch(buffer []format.LogParts) {
 	}
 
 	for _, logPart := range buffer {
+        json_bytes,_ := json.Marshal(logPart)
+        json_str := string(json_bytes)
 		params.LogEvents = append(params.LogEvents, &cloudwatchlogs.InputLogEvent{
-			Message:   aws.String(logPart["content"].(string)),
+			Message:   aws.String(json_str),
 			Timestamp: aws.Int64(makeMilliTimestamp(logPart["timestamp"].(time.Time))),
 		})
 	}
