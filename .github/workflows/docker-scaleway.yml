@@ -21,6 +21,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build the Docker image
       run: |
-        docker login -u anyuser -p ${{ secrets.SCALEWAY_TOKEN }} $REGISTRY
+        docker login -u anyuser -p ${{ secrets.SCALEWAY_TOKEN }} ${{ env.REGISTRY }}
         docker build . --file Dockerfile --tag ${{ env.REGISTRY }}/${{ secrets.SCALEWAY_REGUSER }}/syslog-cloudwatch-bridge:latest
         docker push ${{ env.REGISTRY }}/${{ secrets.SCALEWAY_REGUSER }}/syslog-cloudwatch-bridge:latest
