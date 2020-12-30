@@ -1,0 +1,28 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 5 * * 0'
+
+jobs:
+
+  env:
+    REGISTRY: rg.fr-par.scw.cloud
+
+  environment: prod_env
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build the Docker image
+      run: |
+        docker login -u anyuser -p ${{ secrets.SCALEWAY_TOKEN }} $REGISTRY
+        docker build . --file Dockerfile --tag $REGISTRY/${{ secrets.SCALEWAY_REGUSER }}/syslog-cloudwatch-bridge:latest
+        docker push $REGISTRY/${{ secrets.SCALEWAY_REGUSER }}/syslog-cloudwatch-bridge:latest
