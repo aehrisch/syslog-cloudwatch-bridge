@@ -13,8 +13,6 @@ env:
 
 jobs:
 
-  environment: prod_env
-
   build:
 
     runs-on: ubuntu-latest
